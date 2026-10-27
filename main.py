@@ -13,11 +13,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
 from analysis import compute_cl, solve_alpha
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_FILE = BASE_DIR / "data" / "test.csv"
+DATA_FILE = BASE_DIR / "data" / "test1.csv"
 
 def main():
     """Run the Wind Tunnel Analyzer workflow."""
@@ -27,13 +26,14 @@ def main():
 
     df = load_data(DATA_FILE)
     print_data_summary(df)
-    plot_lift_curve(df)
+    plot_lift_curve(df,cl0=cl0,lift_slope=lift_slope)
     plot_drag_curve(df)
 
-    # TODO:
-    # Add code to compute the angle of attack required to achieve
-    # a target lift coefficient using solve_alpha(...).
-    # Print the result to the console.
+    target_cl = 0.80
+    alpha_required = solve_alpha(target_cl, cl0=cl0, lift_slope=lift_slope)
+    print(f"Target CL            : {target_cl:.3f}")
+    print(f"Required alpha       : {alpha_required:.3f} deg")
+    print(f"Check CL at alpha    : {compute_cl(alpha_required, cl0=cl0, lift_slope=lift_slope):.3f}")
 
     plt.show()
 
@@ -74,7 +74,7 @@ def print_data_summary(df):
     print()
 
 
-def plot_lift_curve(df, cl0=CL0, lift_slope=LIFT_SLOPE):
+def plot_lift_curve(df, cl0=0.10, lift_slope=0.11):
     """Plot experimental CL vs alpha data and overlay the linear lift model."""
     alpha_data = df["alpha_deg"]
     cl_data = df["cl"]

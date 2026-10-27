@@ -53,15 +53,27 @@ def print_lift_summary(alpha, cl0=0.10, lift_slope=0.11):
     print(f"Lift coefficient: {cl:.3f}")
 
 
-# TODO:
-# Add a numerical solver that computes angle of attack from a target
-# lift coefficient using scipy.optimize.fsolve.
-#
-# Planned residual form:
-#     f(alpha) = cl0 + lift_slope * alpha - target_cl
-#
-# Possible function names:
-#     alpha_residual(...)
-#     solve_alpha(...)
-#
-# This feature has not been implemented yet.
+def alpha_residual(alpha, target_cl, cl0=0.10, lift_slope=0.11):
+    """
+    Residual of the linear lift model: f(alpha) = cl0 + lift_slope*alpha - target_cl.
+    The angle of attack that achieves target_cl is the root, f(alpha) = 0.
+    """
+    return compute_cl(alpha, cl0=cl0, lift_slope=lift_slope) - target_cl
+
+
+def solve_alpha(target_cl, cl0=0.10, lift_slope=0.11, alpha_guess=0.0):
+    """
+    Find the angle of attack (deg) that produces target_cl using fsolve.
+    Raises RuntimeError if fsolve does not converge.
+    """
+    solution, _, ier, msg = fsolve(
+        alpha_residual,
+        alpha_guess,
+        args=(target_cl, cl0, lift_slope),
+        full_output=True,
+    )
+    if ier != 1:
+        raise RuntimeError(f"fsolve did not converge: {msg}")
+    return float(solution[0])
+
+
